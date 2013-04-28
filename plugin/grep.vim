@@ -1,8 +1,8 @@
 " File: grep.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.10
-" Last Modified: April 20, 2013
-" 
+" Version: 1.11
+" Last Modified: April 29, 2013
+"
 " Overview
 " --------
 " The grep plugin integrates the grep, fgrep, egrep, and agrep tools with
@@ -322,6 +322,10 @@ endif
 " Location of the agrep utility
 if !exists("Agrep_Path")
     let Agrep_Path = 'agrep'
+endif
+
+if !exists("Ack_Path")
+    let Ack_Path = 'ack'
 endif
 
 " Location of the find utility
@@ -790,7 +794,7 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
         let grep_opt = g:Grep_Default_Options
     endif
 
-    if a:grep_cmd != 'agrep'
+    if a:grep_cmd != 'agrep' && a:grep_cmd != 'ack'
         " Don't display messages about non-existent files
         " Agrep doesn't support the -s option
         let grep_opt = grep_opt . " -s"
@@ -808,12 +812,15 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
     elseif a:grep_cmd == 'agrep'
         let grep_path = g:Agrep_Path
         let grep_expr_option = ''
+    elseif a:grep_cmd == 'ack'
+        let grep_path = g:Ack_Path
+        let grep_expr_option = ' -H --nogroup --nocolor'
     else
         return
     endif
 
     " Get the identifier and file list from user
-    if pattern == "" 
+    if pattern == ""
         let pattern = input("Search for pattern: ", expand("<cword>"))
         if pattern == ""
             return
@@ -823,7 +830,7 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
         echo "\r"
     endif
 
-    if filenames == ""
+    if filenames == "" && a:grep_cmd != 'ack'
         if v:version >= 700
             let filenames = input("Search in files: ", g:Grep_Default_Filelist,
                         \ "file")
@@ -838,8 +845,12 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
 
     " Add /dev/null to the list of filenames, so that grep print the
     " filename and linenumber when grepping in a single file
-    let filenames = filenames . " " . g:Grep_Null_Device
-    let cmd = grep_path . " " . grep_opt . " -n "
+    if a:grep_cmd != 'ack'
+        let filenames = filenames . " " . g:Grep_Null_Device
+        let cmd = grep_path . " " . grep_opt . " -n "
+    else
+        let cmd = grep_path . " " . grep_opt
+    endif
     let cmd = cmd . grep_expr_option . " " . pattern
     let cmd = cmd . " " . filenames
 
@@ -870,6 +881,9 @@ command! -nargs=* -complete=file Agrep
             \ call s:RunGrep('Agrep', 'agrep', 'set', <f-args>)
 command! -nargs=* -complete=file Ragrep
             \ call s:RunGrepRecursive('Ragrep', 'agrep', 'set', <f-args>)
+
+command! -nargs=* -complete=file Ack
+            \ call s:RunGrep('Ack', 'ack', 'set', <f-args>)
 
 if v:version >= 700
 command! -nargs=* -complete=file GrepAdd
