@@ -1,8 +1,8 @@
 " File: grep.vim
 " Author: Yegappan Lakshmanan (yegappan AT yahoo DOT com)
-" Version: 1.10
-" Last Modified: April 20, 2013
-" 
+" Version: 1.11
+" Last Modified: April 29, 2013
+"
 " Overview
 " --------
 " The grep plugin integrates the grep, fgrep, egrep, and agrep tools with
@@ -20,7 +20,7 @@
 " Installation
 " ------------
 " 1. Copy the grep.vim file to the $HOME/.vim/plugin or $HOME/vimfiles/plugin
-"    or $VIM/vimfiles/plugin directory. 
+"    or $VIM/vimfiles/plugin directory.
 "    Refer to the following Vim help topics for more information about Vim
 "    plugins:
 "       :help add-plugin
@@ -47,7 +47,7 @@
 "                  results
 " :Bgrep         - Same as :GrepBuffer
 " :BgrepAdd      - Same as :GrepBufferAdd
-" :GrepArgs      - Search for a pattern on all the Vim argument 
+" :GrepArgs      - Search for a pattern on all the Vim argument
 "                  filenames (:args)
 " :GrepArgsAdd   - Same as ":GrepArgs" but adds the results to the current
 "                  results
@@ -102,7 +102,7 @@
 "
 " You can specify grep options like -i (ignore case) or -w (search for a word)
 " to the above commands.  If the <grep_options> are not specified, then the
-" default grep options specified by the variable Grep_Default_Options is 
+" default grep options specified by the variable Grep_Default_Options is
 " used.
 "
 " You can specify the grep pattern to search as an argument to the above
@@ -166,7 +166,7 @@
 "    window again.
 "
 " For more information about other quickfix commands read ":help quickfix"
-" 
+"
 " When using GUI Vim, the Tools->Search menu item with a few sub-menu items is
 " created for few variations of the search command.
 "
@@ -241,6 +241,13 @@
 "
 "       :let Grep_OpenQuickfixWindow = 0
 "
+" By default, when you invoke the Grep commands the quickfix window will be
+" opened with the grep output.  You can enable opening the quickfix window
+" in new tab, by setting the 'Grep_OpenTabWithQuickfixWindow' variable to
+" one:
+"
+"       :let Grep_OpenTabWithQuickfixWindow = 1
+"
 " You can manually open the quickfix window using the :cwindow command.
 "
 " By default, for recursive searches, the 'find' and 'xargs' utilities are
@@ -250,7 +257,7 @@
 " recursive searches:
 "
 "       :let Grep_Find_Use_Xargs = 0
-" 
+"
 " To handle file names with space characters in them, the xargs utility is
 " invoked with the '-0' argument. If the xargs utility in your system doesn't
 " accept the '-0' argument, then you can change the Grep_Xargs_Options
@@ -264,7 +271,7 @@
 " difference between the backslash and forward slash path separators.
 "
 "       :let Grep_Cygwin_Find = 1
-" 
+"
 " The 'Grep_Null_Device' variable specifies the name of the null device to
 " pass to the grep commands. This is needed to force the grep commands to
 " print the name of the file in which a match is found, if only one filename
@@ -317,6 +324,10 @@ if !exists("Agrep_Path")
     let Agrep_Path = 'agrep'
 endif
 
+if !exists("Ack_Path")
+    let Ack_Path = 'ack'
+endif
+
 " Location of the find utility
 if !exists("Grep_Find_Path")
     let Grep_Find_Path = 'find'
@@ -333,6 +344,13 @@ endif
 if !exists("Grep_OpenQuickfixWindow")
     let Grep_OpenQuickfixWindow = 1
 endif
+
+" Open Grep output window in new tab. Set this varibale to one, to enable
+" it and disable default behavior with quickfix window.
+if !exists("Grep_OpenTabWithQuickfixWindow")
+    let Grep_OpenTabWithQuickfixWindow = 0
+endif
+
 
 " Default grep file list
 if !exists("Grep_Default_Filelist")
@@ -436,8 +454,8 @@ function! s:RunGrepCmd(cmd, pattern, action)
     " are problems with a few input files.
 
     if cmd_output == ""
-        echohl WarningMsg | 
-        \ echomsg "Error: Pattern " . a:pattern . " not found" | 
+        echohl WarningMsg |
+        \ echomsg "Error: Pattern " . a:pattern . " not found" |
         \ echohl None
         return
     endif
@@ -470,9 +488,14 @@ function! s:RunGrepCmd(cmd, pattern, action)
     let &efm = old_efm
 
     " Open the grep output window
-    if g:Grep_OpenQuickfixWindow == 1
-        " Open the quickfix window below the current window
-        botright copen
+    if g:Grep_OpenTabWithQuickfixWindow == 1
+        " Create tab with quickfix window below
+        tabnew +cwindow
+    else
+        if g:Grep_OpenQuickfixWindow == 1
+            " Open the quickfix window below the current window
+            botright copen
+        endif
     endif
 
     call delete(tmpfile)
@@ -496,7 +519,7 @@ function! s:RunGrepRecursive(cmd_name, grep_cmd, action, ...)
         if a:{argcnt} =~ '^-'
             let grep_opt = grep_opt . " " . a:{argcnt}
         elseif pattern == ""
-            let pattern = g:Grep_Shell_Quote_Char . a:{argcnt} . 
+            let pattern = g:Grep_Shell_Quote_Char . a:{argcnt} .
                             \ g:Grep_Shell_Quote_Char
         else
             let filepattern = filepattern . " " . a:{argcnt}
@@ -530,12 +553,12 @@ function! s:RunGrepRecursive(cmd_name, grep_cmd, action, ...)
     endif
 
     " No argument supplied. Get the identifier and file list from user
-    if pattern == "" 
+    if pattern == ""
         let pattern = input("Search for pattern: ", expand("<cword>"))
         if pattern == ""
             return
         endif
-        let pattern = g:Grep_Shell_Quote_Char . pattern . 
+        let pattern = g:Grep_Shell_Quote_Char . pattern .
                         \ g:Grep_Shell_Quote_Char
         echo "\r"
     endif
@@ -555,7 +578,7 @@ function! s:RunGrepRecursive(cmd_name, grep_cmd, action, ...)
     echo "\r"
 
     if filepattern == ""
-        let filepattern = input("Search in files matching pattern: ", 
+        let filepattern = input("Search in files matching pattern: ",
                                           \ g:Grep_Default_Filelist)
         if filepattern == ""
             return
@@ -616,7 +639,7 @@ function! s:RunGrepRecursive(cmd_name, grep_cmd, action, ...)
         let cmd = cmd . g:Grep_Xargs_Path . ' ' . g:Grep_Xargs_Options
         let cmd = cmd . ' ' . grep_path . " " . grep_opt . " -n "
         let cmd = cmd . grep_expr_option . " " . pattern
-        let cmd = cmd . ' ' . g:Grep_Null_Device 
+        let cmd = cmd . ' ' . g:Grep_Null_Device
     else
         let cmd = g:Grep_Find_Path . " " . startdir
         let cmd = cmd . " " . find_prune . " -prune -o"
@@ -771,7 +794,7 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
         let grep_opt = g:Grep_Default_Options
     endif
 
-    if a:grep_cmd != 'agrep'
+    if a:grep_cmd != 'agrep' && a:grep_cmd != 'ack'
         " Don't display messages about non-existent files
         " Agrep doesn't support the -s option
         let grep_opt = grep_opt . " -s"
@@ -789,12 +812,15 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
     elseif a:grep_cmd == 'agrep'
         let grep_path = g:Agrep_Path
         let grep_expr_option = ''
+    elseif a:grep_cmd == 'ack'
+        let grep_path = g:Ack_Path
+        let grep_expr_option = ' -H --nogroup --nocolor'
     else
         return
     endif
 
     " Get the identifier and file list from user
-    if pattern == "" 
+    if pattern == ""
         let pattern = input("Search for pattern: ", expand("<cword>"))
         if pattern == ""
             return
@@ -804,7 +830,7 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
         echo "\r"
     endif
 
-    if filenames == ""
+    if filenames == "" && a:grep_cmd != 'ack'
         if v:version >= 700
             let filenames = input("Search in files: ", g:Grep_Default_Filelist,
                         \ "file")
@@ -819,8 +845,12 @@ function! s:RunGrep(cmd_name, grep_cmd, action, ...)
 
     " Add /dev/null to the list of filenames, so that grep print the
     " filename and linenumber when grepping in a single file
-    let filenames = filenames . " " . g:Grep_Null_Device
-    let cmd = grep_path . " " . grep_opt . " -n "
+    if a:grep_cmd != 'ack'
+        let filenames = filenames . " " . g:Grep_Null_Device
+        let cmd = grep_path . " " . grep_opt . " -n "
+    else
+        let cmd = grep_path . " " . grep_opt
+    endif
     let cmd = cmd . grep_expr_option . " " . pattern
     let cmd = cmd . " " . filenames
 
@@ -851,6 +881,9 @@ command! -nargs=* -complete=file Agrep
             \ call s:RunGrep('Agrep', 'agrep', 'set', <f-args>)
 command! -nargs=* -complete=file Ragrep
             \ call s:RunGrepRecursive('Ragrep', 'agrep', 'set', <f-args>)
+
+command! -nargs=* -complete=file Ack
+            \ call s:RunGrep('Ack', 'ack', 'set', <f-args>)
 
 if v:version >= 700
 command! -nargs=* -complete=file GrepAdd
