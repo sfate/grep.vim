@@ -6,6 +6,10 @@ This is a fork of the next [mirror](http://www.vim.org/scripts/script.php?script
 
 Vim plugin for handy search through files.
 
+## Installation
+
+Follow the white rabbit to [wiki](https://github.com/Sfate/grep.vim/wiki/Installation)
+
 ## Usage
 
 The grep.vim plugin introduces a lot Vim commands and you can find them [here](https://github.com/Sfate/grep.vim/wiki/Usage).
@@ -35,6 +39,8 @@ For the quick start we will use just next ones(add them at your .vimrc):
 
      " Enable showing up search results at new tab
     let Grep_OpenTabWithQuickfixWindow = 1
+
+## [Changelog](https://github.com/Sfate/grep.vim/blob/master/changelog.md)
 
 ## License
 
