@@ -241,6 +241,13 @@
 "
 "       :let Grep_OpenQuickfixWindow = 0
 "
+" By default, when you invoke the Grep commands the quickfix window will be
+" opened with the grep output.  You can enable opening the quickfix window
+" in new tab, by setting the 'Grep_OpenTabWithQuickfixWindow' variable to
+" one:
+"
+"       :let Grep_OpenTabWithQuickfixWindow = 1
+"
 " You can manually open the quickfix window using the :cwindow command.
 "
 " By default, for recursive searches, the 'find' and 'xargs' utilities are
@@ -333,6 +340,13 @@ endif
 if !exists("Grep_OpenQuickfixWindow")
     let Grep_OpenQuickfixWindow = 1
 endif
+
+" Open Grep output window in new tab. Set this varibale to one, to enable
+" it and disable default behavior with quickfix window.
+if !exists("Grep_OpenTabWithQuickfixWindow")
+    let Grep_OpenTabWithQuickfixWindow = 0
+endif
+
 
 " Default grep file list
 if !exists("Grep_Default_Filelist")
@@ -470,9 +484,14 @@ function! s:RunGrepCmd(cmd, pattern, action)
     let &efm = old_efm
 
     " Open the grep output window
-    if g:Grep_OpenQuickfixWindow == 1
-        " Open the quickfix window below the current window
-        botright copen
+    if g:Grep_OpenTabWithQuickfixWindow == 1
+        " Create tab with quickfix window below
+        tabnew +cwindow
+    else
+        if g:Grep_OpenQuickfixWindow == 1
+            " Open the quickfix window below the current window
+            botright copen
+        endif
     endif
 
     call delete(tmpfile)
