@@ -22,9 +22,11 @@ And we would start with theese two:
 
 The above commands can be invoked like this:
 
-    :Grep   [<grep_options>] [<search_pattern> [<file_name(s)>]]
+```
+:Grep   [<grep_options>] [<search_pattern> [<file_name(s)>]]
 
-    :Ack    [<grep_options>] [<search_pattern> [<file_name(s)>]]
+:Ack    [<grep_options>] [<search_pattern> [<file_name(s)>]]
+```
 
 In the above commands, all the arguments are optional.
 
@@ -34,11 +36,13 @@ Full list of configurations you can find [here](https://github.com/Sfate/grep.vi
 
 For the quick start we will use just next ones(add them at your .vimrc):
 
-    " Set executable path for ack
-    let Ack_Path = 'ack-grep'
+```vim
+" Set executable path for ack
+let Ack_Path = 'ack-grep'
 
-     " Enable showing up search results at new tab
-    let Grep_OpenTabWithQuickfixWindow = 1
+" Enable showing up search results at new tab
+let Grep_OpenTabWithQuickfixWindow = 1
+```
 
 ## [Changelog](https://github.com/Sfate/grep.vim/blob/master/changelog.md)
 
