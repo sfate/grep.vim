@@ -264,7 +264,7 @@
 " variable. For example, to use the '--null' xargs argument, you can use the
 " following command:
 "
-" 	:let Grep_Xargs_Options = '--null'
+"   :let Grep_Xargs_Options = '--null'
 "
 " The Grep_Cygwin_Find variable should be set to 1, if you are using the find
 " utility from the cygwin package. This setting is used to handle the
@@ -439,7 +439,7 @@ function! s:RunGrepCmd(cmd, pattern, action)
             redir END
         endif
 
-	let cmd_output = system('"' . s:grep_tempfile . '"')
+        let cmd_output = system('"' . s:grep_tempfile . '"')
     else
         let cmd_output = system(a:cmd)
     endif
@@ -490,7 +490,13 @@ function! s:RunGrepCmd(cmd, pattern, action)
     " Open the grep output window
     if g:Grep_OpenTabWithQuickfixWindow == 1
         " Create tab with quickfix window below
-        tabnew +cwindow
+        if (getbufvar(winbufnr(winnr()), "&buftype") == "quickfix")
+          " If the current window is the quickfix window
+          cclose
+          botright copen
+        else
+          tabnew +cwindow
+        endif
     else
         if g:Grep_OpenQuickfixWindow == 1
             " Open the quickfix window below the current window
